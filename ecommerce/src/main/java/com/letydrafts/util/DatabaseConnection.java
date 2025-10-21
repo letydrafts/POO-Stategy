@@ -10,9 +10,10 @@ public final class DatabaseConnection {
         private static DatabaseConnection instance;
         private final Connection connection;
 
-        private final String URL = "jdbc:mysql://localhost:3308/letydrafts";
-        private final String USER = "letydrafts";
-        private final String PASSWORD = "27092016";
+    // Postgres container `postgres-rails` is available on 127.0.0.1:5432
+    private final String URL = "jdbc:postgresql://127.0.0.1:5432/postgres-rails?connectTimeout=5";
+    private final String USER = "postgres";
+    private final String PASSWORD = "password";
 
         private DatabaseConnection(){
             try {
