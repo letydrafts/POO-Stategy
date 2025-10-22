@@ -18,12 +18,19 @@ public class CartDAO {
     }
 
     public boolean create(Cart cart) {
-        String sql = "INSERT INTO carts (description, total, created_on) VALUES (?, ?, ?)";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        String sql = "INSERT INTO carts (description, total, created_on, client_id) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, cart.getDescription());
             stmt.setDouble(2, cart.getTotal());
             stmt.setTimestamp(3, Timestamp.valueOf(cart.getCreatedOn()));
-            return stmt.executeUpdate() > 0;
+            if (cart.getClientId() == null) stmt.setNull(4, Types.INTEGER);
+            else stmt.setInt(4, cart.getClientId());
+            int updated = stmt.executeUpdate();
+            if (updated > 0) {
+                ResultSet keys = stmt.getGeneratedKeys();
+                if (keys.next()) cart.setClientId(cart.getClientId()); // no-op but keep key retrieval if needed
+            }
+            return updated > 0;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -43,6 +50,9 @@ public class CartDAO {
 
                 Cart cart = new Cart(createdOn);
                 cart.getProducts().addAll(getProductsFromCart(id));
+                cart.setClientId(rs.getObject("client_id") != null ? rs.getInt("client_id") : null);
+                // set id if available
+                cart = setCartIdAndFields(cart, rs.getInt("id"), rs);
                 return cart;
             }
         } catch (SQLException e) {
@@ -65,6 +75,8 @@ public class CartDAO {
 
                 Cart cart = new Cart(createdOn);
                 cart.getProducts().addAll(getProductsFromCart(rs.getInt("id")));
+                cart.setClientId(rs.getObject("client_id") != null ? rs.getInt("client_id") : null);
+                cart = setCartIdAndFields(cart, rs.getInt("id"), rs);
                 carts.add(cart);
             }
 
@@ -76,11 +88,13 @@ public class CartDAO {
     }
 
     public boolean edit(Cart cart, int cartId) {
-        String sql = "UPDATE carts SET total = ?, description = ? WHERE id = ?";
+        String sql = "UPDATE carts SET total = ?, description = ?, client_id = ? WHERE id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setDouble(1, cart.getTotal());
             stmt.setString(2, cart.getDescription());
-            stmt.setInt(3, cartId);
+            if (cart.getClientId() == null) stmt.setNull(3, Types.INTEGER);
+            else stmt.setInt(3, cart.getClientId());
+            stmt.setInt(4, cartId);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -120,5 +134,43 @@ public class CartDAO {
         }
 
         return products;
+    }
+
+    // Helper to set id and other basic fields from result set
+    private Cart setCartIdAndFields(Cart cart, int id, ResultSet rs) throws SQLException {
+        // set id via reflection or adding setter; presuming Cart has setId method absent, we set via reflection
+        try {
+            java.lang.reflect.Field idField = Cart.class.getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(cart, id);
+        } catch (NoSuchFieldException | IllegalAccessException ex) {
+            // ignore if can't set
+        }
+
+        // set other fields if available
+        try {
+            double total = rs.getDouble("total");
+            java.lang.reflect.Field totalField = Cart.class.getDeclaredField("total");
+            totalField.setAccessible(true);
+            totalField.set(cart, total);
+        } catch (Exception ignore) {}
+
+        try {
+            String description = rs.getString("description");
+            java.lang.reflect.Field descField = Cart.class.getDeclaredField("description");
+            descField.setAccessible(true);
+            descField.set(cart, description);
+        } catch (Exception ignore) {}
+
+        try {
+            Timestamp endedOnTs = rs.getTimestamp("ended_on");
+            if (endedOnTs != null) {
+                java.lang.reflect.Field endedField = Cart.class.getDeclaredField("endedOn");
+                endedField.setAccessible(true);
+                endedField.set(cart, endedOnTs.toLocalDateTime());
+            }
+        } catch (Exception ignore) {}
+
+        return cart;
     }
 }

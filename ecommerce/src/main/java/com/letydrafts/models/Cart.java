@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 public class Cart {
     private Integer id;
+    private Integer clientId;
     private ArrayList<Product> products;
     private Double total;
     private String description;
@@ -25,6 +26,14 @@ public class Cart {
         this.total = 0.0;
         this.description = "Pending";
         this.createdOn = createdOn;
+    }
+
+    public Integer getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(Integer clientId) {
+        this.clientId = clientId;
     }
 
     public Double getTotal() {

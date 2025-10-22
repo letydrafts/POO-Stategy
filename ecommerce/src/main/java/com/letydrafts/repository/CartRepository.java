@@ -18,6 +18,11 @@ public class CartRepository {
         return cartDAO.create(cart);
     }
 
+    public boolean createForClient(Cart cart, Integer clientId) {
+        cart.setClientId(clientId);
+        return cartDAO.create(cart);
+    }
+
     public Cart findById(int id) {
         return cartDAO.findById(id);
     }

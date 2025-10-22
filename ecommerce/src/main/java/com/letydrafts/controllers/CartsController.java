@@ -28,7 +28,12 @@ public class CartsController {
 
     public void create(Context ctx) {
         Cart cart = new Cart(LocalDateTime.now());
-        boolean ok = cartRepository.create(cart);
+        String clientParam = ctx.formParam("clientId");
+        Integer clientId = null;
+        if (clientParam != null && !clientParam.isBlank()) {
+            try { clientId = Integer.parseInt(clientParam); } catch (NumberFormatException e) { clientId = null; }
+        }
+        boolean ok = cartRepository.createForClient(cart, clientId);
         ctx.status(ok ? 201 : 400).result(ok ? "Created" : "Create failed");
     }
 
