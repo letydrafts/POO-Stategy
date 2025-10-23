@@ -14,7 +14,6 @@ public class AdminsController {
         List<Admin> all = repository.getAll();
         ctx.json(all);
     }
-
     public void getById(Context ctx) {
         int id = Integer.parseInt(ctx.pathParam("id"));
         Admin a = repository.getById(id);
