@@ -1,4 +1,3 @@
--- V4: add client_id to carts and foreign key
 
 ALTER TABLE carts
 ADD COLUMN client_id INTEGER NULL;

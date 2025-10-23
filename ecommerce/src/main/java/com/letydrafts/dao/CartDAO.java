@@ -136,18 +136,18 @@ public class CartDAO {
         return products;
     }
 
-    // Helper to set id and other basic fields from result set
+
     private Cart setCartIdAndFields(Cart cart, int id, ResultSet rs) throws SQLException {
-        // set id via reflection or adding setter; presuming Cart has setId method absent, we set via reflection
+
         try {
             java.lang.reflect.Field idField = Cart.class.getDeclaredField("id");
             idField.setAccessible(true);
             idField.set(cart, id);
         } catch (NoSuchFieldException | IllegalAccessException ex) {
-            // ignore if can't set
+
         }
 
-        // set other fields if available
+
         try {
             double total = rs.getDouble("total");
             java.lang.reflect.Field totalField = Cart.class.getDeclaredField("total");

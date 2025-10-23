@@ -1,4 +1,3 @@
--- V2 Postgres: seed data
 
 INSERT INTO admins (email, name) VALUES
   ('admin@loja.com', 'Admin Principal'),

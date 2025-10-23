@@ -1,4 +1,4 @@
--- V1 Postgres: initial schema for e-commerce (converted from MySQL)
+
 
 CREATE TABLE IF NOT EXISTS products (
   id SERIAL PRIMARY KEY,
